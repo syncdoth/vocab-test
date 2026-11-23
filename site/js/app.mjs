@@ -2,7 +2,7 @@ import {
   QUESTION_COUNT, dateAtOffset, dateKey, formatDate, formatDuration,
   makeAttempt, makeCatalog, resolveDeadline, resultsForDate, submitAnswer,
 } from "./quiz.mjs";
-import { onStateChange, readState, updateState } from "./storage.mjs";
+import { onStateChange, readAnswerDraft, readState, saveAnswerDraft, updateState } from "./storage.mjs";
 
 const main = document.querySelector("#main");
 const nav = document.querySelector(".navigation");
@@ -166,6 +166,8 @@ function quizPage(attempt) {
   const index = attempt.answers.length;
   const question = attempt.questions[index];
   const word = catalog.byId.get(question.wordId);
+  const draft = readAnswerDraft(attempt);
+  const selection = question.choiceIds.includes(draft) ? draft : null;
   return `<div class="quiz">
     <div class="quiz-header">
       <div>
@@ -180,13 +182,21 @@ function quizPage(attempt) {
       <h1 id="word" tabindex="-1">${escapeHtml(word.word)}</h1>
       <span class="word-pos" aria-label="Part of speech">${escapeHtml(word.pos)}</span>
     </section>
-    <div class="choices" aria-label="Answer choices">${question.choiceIds.map((id, option) => `
-      <button type="button" class="choice" data-choice="${escapeHtml(id)}">
-        <span class="choice-letter" aria-hidden="true">${"ABCD"[option]}</span>
-        <span>${escapeHtml(catalog.byId.get(id).definition)}</span>
-      </button>`).join("")}
-    </div>
-    <p class="quiz-note">Each answer is final. <span class="key-hint">Keyboard shortcuts: 1–4.</span></p>
+    <form class="answer-form">
+      <div class="choices" role="radiogroup" aria-label="Answer choices">${question.choiceIds.map((id, option) => `
+        <label class="choice-option">
+          <input type="radio" name="answer" value="${escapeHtml(id)}" ${selection === id ? "checked" : ""}>
+          <span class="choice">
+            <span class="choice-letter" aria-hidden="true">${"ABCD"[option]}</span>
+            <span>${escapeHtml(catalog.byId.get(id).definition)}</span>
+          </span>
+        </label>`).join("")}
+      </div>
+      <div class="quiz-actions">
+        <p class="quiz-note">Each submitted answer is final. <span class="key-hint">Use 1–4 to choose.</span></p>
+        <button class="button primary" type="submit" ${selection ? "" : "disabled"}>Submit answer</button>
+      </div>
+    </form>
   </div>`;
 }
 
@@ -262,10 +272,7 @@ document.addEventListener("click", event => {
   const button = event.target.closest("button");
   if (!button) return;
 
-  if (state.active) {
-    if (button.dataset.choice) void answer(button.dataset.choice);
-    return;
-  }
+  if (state.active) return;
 
   const { start: testDate, view: target, resultDate, resultNumber, older } = button.dataset;
   if (testDate) {
@@ -285,11 +292,26 @@ document.addEventListener("click", event => {
   }
 });
 
+main.addEventListener("change", event => {
+  const input = event.target;
+  if (!state?.active || !input.matches('.answer-form input[name="answer"]')) return;
+  saveAnswerDraft(state.active, input.value);
+  input.form.querySelector("button[type=submit]").disabled = false;
+});
+
+main.addEventListener("submit", event => {
+  if (!event.target.matches(".answer-form")) return;
+  event.preventDefault();
+  const selected = new FormData(event.target).get("answer");
+  if (selected) void answer(selected);
+});
+
 window.addEventListener("keydown", event => {
   if (!state?.active || busy || event.repeat || event.metaKey || event.altKey || event.ctrlKey) return;
   if (!/^[1-4]$/.test(event.key)) return;
-  const attempt = state.active;
-  void answer(attempt.questions[attempt.answers.length].choiceIds[Number(event.key) - 1]);
+  const option = main.querySelectorAll('.answer-form input[name="answer"]')[Number(event.key) - 1];
+  option?.focus({ preventScroll: true });
+  option?.click();
 });
 
 function tick() {

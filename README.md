@@ -1,6 +1,6 @@
 # Vocab Daily
 
-Personal vocabulary practice based on the VZIP Ascent and Summit PDFs. The app serves 50 English word-to-meaning questions each day. An attempt lasts 10 minutes, advances one card per answer, and saves the result automatically. Unanswered words count as incorrect at timeout.
+Personal vocabulary practice based on the VZIP Ascent and Summit PDFs. The app serves 50 English word-to-meaning questions each day. Select a meaning and press **Submit answer** to advance. An attempt lasts 10 minutes and saves the result automatically. Unsubmitted answers count as incorrect at timeout.
 
 ## Run locally
 

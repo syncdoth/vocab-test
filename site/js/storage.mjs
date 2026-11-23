@@ -1,7 +1,29 @@
 import { dateKey } from "./quiz.mjs";
 
 const KEY = "vzip-vocab-test";
+const DRAFT_KEY = "vzip-answer-draft";
 const VERSION = 1;
+
+function questionKey(attempt) {
+  return `${attempt.testDate}/${attempt.startedAt}/${attempt.answers.length}`;
+}
+
+export function readAnswerDraft(attempt) {
+  try {
+    const draft = JSON.parse(sessionStorage.getItem(DRAFT_KEY));
+    return draft?.question === questionKey(attempt) ? draft.choiceId : null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveAnswerDraft(attempt, choiceId) {
+  try {
+    sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ question: questionKey(attempt), choiceId }));
+  } catch {
+    // The form can still submit the selected answer when session storage is unavailable.
+  }
+}
 
 export function readState() {
   const saved = localStorage.getItem(KEY);
