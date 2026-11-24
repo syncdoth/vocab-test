@@ -59,12 +59,13 @@ function shuffled(items, random) {
   return result;
 }
 
-export function wordsForDate(entries, startDate, testDate) {
+export function wordsForDate(entries, startDate, testDate, scheduleKey) {
   const offset = daysBetween(startDate, testDate);
   const cycleLength = entries.length / QUESTION_COUNT;
   const cycle = Math.floor(offset / cycleLength);
   const first = (offset % cycleLength) * QUESTION_COUNT;
-  return shuffled(entries, seededRandom(`vzip-1/${startDate}/${cycle}`))
+  const seed = `vzip-1/${startDate}/${cycle}`;
+  return shuffled(entries, seededRandom(scheduleKey ? `${seed}/${scheduleKey}` : seed))
     .slice(first, first + QUESTION_COUNT);
 }
 
@@ -119,11 +120,11 @@ export function resultsForDate(state, testDate) {
   return state.results.filter(result => result.testDate === testDate);
 }
 
-export function makeAttempt(state, catalog, testDate, now = Date.now()) {
+export function makeAttempt(state, catalog, testDate, now = Date.now(), { variation, scheduleKey } = {}) {
   if (state.active || testDate < state.startDate || testDate > dateKey(now)) return;
   const attemptNumber = resultsForDate(state, testDate).length + 1;
-  const random = seededRandom(`vzip-attempt-1/${state.startDate}/${testDate}/${attemptNumber}`);
-  const words = wordsForDate(catalog.entries, state.startDate, testDate);
+  const random = seededRandom(`vzip-attempt-1/${state.startDate}/${testDate}/${variation ?? attemptNumber}`);
+  const words = wordsForDate(catalog.entries, state.startDate, testDate, scheduleKey);
   const questions = shuffled(words, random).map(word => makeQuestion(word, catalog, random));
   state.active = {
     testDate,

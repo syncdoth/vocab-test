@@ -1,0 +1,65 @@
+.class-panel {
+  display: grid;
+  gap: 16px;
+  padding: clamp(17px, 4vw, 26px);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--white);
+}
+.auth-panel { max-width: 430px; }
+.class-form { display: grid; gap: 14px; }
+.class-form .button { justify-self: start; }
+.class-field { display: grid; gap: 6px; min-width: 0; font-size: .875rem; font-weight: 650; }
+.class-field input, .class-field select {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 8px 10px;
+  color: var(--ink);
+  border: 1px solid #bacbb9;
+  border-radius: 8px;
+  background: var(--white);
+  font: inherit;
+  font-size: 1rem;
+}
+.class-field input:focus-visible, .class-field select:focus-visible { outline: 3px solid #729c50; outline-offset: 2px; }
+.roster-heading { align-items: end; flex-wrap: wrap; }
+.roster-heading .class-field { min-width: 150px; }
+.roster-panel { margin-top: 16px; }
+.class-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.class-note { color: var(--muted); line-height: 1.5; }
+.account-details { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.account-details strong { overflow-wrap: anywhere; }
+.class-button-row { display: grid; grid-template-columns: 1fr 1fr auto; align-items: end; gap: 12px; }
+.roster-record { grid-template-columns: minmax(130px, 1fr) minmax(104px, auto) auto; align-items: start; }
+.teacher-record { padding: 14px; }
+.teacher-record .record { padding: 0; }
+.teacher-record .class-actions { margin-top: 10px; }
+.teacher-record + .teacher-record { border-top: 1px solid var(--line); }
+.password-slip { background: #eef4e3; }
+.password-slip code { font-size: 1rem; overflow-wrap: anywhere; user-select: all; }
+.password-slip p { line-height: 1.5; }
+.review-correct { color: #365c45; }
+.review-wrong { color: #862f20; }
+.sign-out {
+  width: fit-content;
+  min-height: 42px;
+  margin-top: 4px;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: #edfae8;
+  text-align: left;
+  font-weight: 650;
+}
+.class-view { margin-bottom: 18px; }
+.class-view .button[aria-pressed="true"] { border-color: #497753; background: #e4efdf; }
+@media (hover:hover) and (pointer:fine) {
+  .sign-out:hover { text-decoration: underline; }
+}
+@media (max-width:680px) {
+  .sidebar-foot:has(.sign-out:not([hidden])) { display: flex; margin: 0; padding: 0; border: 0; }
+  .sidebar-foot > span { display: none; }
+  .sign-out { margin: 0; min-height: 36px; }
+  .class-button-row { grid-template-columns: 1fr; }
+}

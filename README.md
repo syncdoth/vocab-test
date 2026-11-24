@@ -1,8 +1,33 @@
 # Vocab Daily
 
-Personal vocabulary practice based on the VZIP Ascent and Summit PDFs. The app serves 50 English word-to-meaning questions each day. Select a meaning and press **Submit answer** to advance. An attempt lasts 10 minutes and saves the result automatically. Unsubmitted answers count as incorrect at timeout.
+Daily vocabulary practice based on the VZIP Ascent and Summit PDFs. Select a meaning and press **Submit answer** to advance. An attempt has 50 questions and a 10-minute deadline. Unsubmitted answers count as incorrect at timeout.
 
-## Run locally
+## Classroom
+
+Students sign in with a teacher-issued ID and temporary password, then choose their own password. Everyone gets the same daily word set in Korea time, with independently shuffled questions and choices. A missed first attempt can be made up during the following seven calendar days. Retakes open after a first attempt and stay in their own history. Correct answers are available immediately after the attempt ends.
+
+Supabase saves submitted answers, in-progress attempts, official scores, and retakes. The teacher page shows daily completion status, individual history, and the 30 most missed words across each student's first attempts. Archiving a student revokes access and keeps their results available to the teacher.
+
+### Set up Supabase Free and Vercel Hobby
+
+1. Create a Supabase Free project with the Data API enabled. Apply [the classroom migration](supabase/migrations/20261124000100_classroom.sql) in the SQL Editor or use `supabase db push` in a linked checkout. The migration starts the shared schedule on its application date in Korea time.
+2. In Supabase Authentication, turn off public sign-ups and create the teacher account with an email and a password. Mark the email as confirmed when creating the user. In the SQL Editor, register the account as the classroom teacher, replacing the sample address with that account's email:
+
+   ```sql
+   insert into public.class_profiles (id, login, auth_email, name, role)
+   select id, 'teacher', email, 'Teacher', 'teacher'
+   from auth.users
+   where email = 'teacher@example.com';
+   ```
+
+3. In a personal Vercel Hobby account, import this repository at its root. Add the three server environment variables from [`.env.example`](.env.example) using the Supabase project URL, publishable key, and secret key. The secret key belongs in Vercel's server environment. [Supabase API key setup](https://supabase.com/docs/guides/getting-started/api-keys)
+4. Deploy and sign in with the `teacher` login ID and the password you set in Supabase. Use **Create student** to provision each student and share the generated login details directly with them.
+
+The classroom build uses Node.js 22 and publishes only the classroom interface to `dist/`. For local development against a configured Supabase project, run `npm run build` and `npx vercel dev` with the variables in `.env.local`. The Vercel function reads the vocabulary bank server-side and grades submissions against the database deadline.
+
+## Personal GitHub Pages version
+
+The personal version continues to serve the static `site/` directory. It keeps results in the current browser. Classroom accounts start with their own history.
 
 Open a terminal at the project root and run:
 
@@ -10,15 +35,7 @@ Open a terminal at the project root and run:
 python3 -m http.server 8000 --directory site
 ```
 
-Visit http://localhost:8000. The site uses browser-native JavaScript modules and has no build or package installation step.
-
-## Tests and history
-
-- The first visit starts the schedule. New sets unlock at midnight in Asia/Seoul, and earlier sets stay open for makeup.
-- The 2,400 words are shuffled in 48-day cycles. Retakes use the same words with reshuffled question order and choices.
-- History keeps the first attempt as the daily score. It lists retakes separately.
-- The deadline and answers survive refreshes. If the browser is closed when a test expires, the next visit records the timeout.
-- Results belong to the current browser and site address. Clearing site data removes them.
+Visit http://localhost:8000. The `pages.yml` workflow publishes this version to GitHub Pages.
 
 ## Vocabulary
 
@@ -29,9 +46,3 @@ To regenerate the dataset with Poppler installed, pass the two PDFs in Ascent, S
 ```sh
 python3 scripts/import_vocab.py path/to/ascent.pdf path/to/summit.pdf
 ```
-
-## Hosting
-
-Select **GitHub Actions** under the repository's **Settings → Pages**. The included workflow publishes the `site/` directory on pushes to `main`.
-
-For a later Vercel and Supabase version, the UI, quiz logic, and browser storage adapter are separate ES modules. The vocabulary rows have stable source IDs. A class version can add Supabase Auth, associate attempts with users, and move answer evaluation and deadline checks to the server. Check that the intended use fits the [Vercel Hobby terms](https://vercel.com/docs/plans/hobby) and [Supabase Free limits](https://supabase.com/pricing) before migrating.
