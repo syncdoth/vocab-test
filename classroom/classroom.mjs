@@ -21,6 +21,7 @@ let showMissed = false;
 let serverOffset = 0;
 let retryAt = 0;
 let busy = false;
+let copyStatusTimer;
 
 function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, character => ({
@@ -221,8 +222,26 @@ function passwordSlip() {
     <p>Share these with the student. They’ll choose a new password after signing in.</p>
     <div class="account-details"><strong>Login ID</strong> <code>${escapeHtml(credentials.login)}</code></div>
     <div class="account-details"><strong>Temporary password</strong> <code>${escapeHtml(credentials.password)}</code></div>
-    <div class="class-actions">${command("copy-login", "Copy login details")}${command("dismiss-login", "Dismiss", "text-button")}</div>
+    <div class="class-actions">
+      ${command("copy-login", "Copy login details")}${command("dismiss-login", "Dismiss", "text-button")}
+      <span class="class-note" role="status"></span>
+    </div>
   </section>`;
+}
+
+async function copyLoginDetails(button) {
+  const status = button.parentElement.querySelector("[role=status]");
+  status.textContent = "";
+  let message = "Copied";
+  try {
+    await navigator.clipboard.writeText(`Login ID: ${credentials.login}\nTemporary password: ${credentials.password}`);
+  } catch {
+    message = "Couldn’t copy. You can select and copy the login details.";
+  }
+  if (!status.isConnected) return;
+  clearTimeout(copyStatusTimer);
+  status.textContent = message;
+  if (message === "Copied") copyStatusTimer = setTimeout(() => { status.textContent = ""; }, 2500);
 }
 
 function rosterPage() {
@@ -407,6 +426,10 @@ document.addEventListener("click", event => {
   const button = event.target.closest("[data-command]");
   if (!button || busy) return;
   const { command: action, id, date, active: nextActive, retake } = button.dataset;
+  if (action === "copy-login") {
+    void copyLoginDetails(button);
+    return;
+  }
   void run(async () => {
     switch (action) {
       case "logout": await api("logout"); await openSession(null); break;
@@ -446,12 +469,9 @@ document.addEventListener("click", event => {
         credentials = null;
         await showRoster(roster.date);
         break;
-      case "copy-login":
-        await navigator.clipboard.writeText(`Login ID: ${credentials.login}\nTemporary password: ${credentials.password}`);
-        break;
       case "dismiss-login": credentials = null; break;
     }
-  }, { focus: !["all-answers", "missed-answers", "copy-login", "more-history"].includes(action) });
+  }, { focus: !["all-answers", "missed-answers", "more-history"].includes(action) });
 });
 
 main.addEventListener("submit", event => {
