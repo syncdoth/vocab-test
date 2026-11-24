@@ -10,7 +10,7 @@ Supabase saves submitted answers, in-progress attempts, official scores, and ret
 
 ### Set up Supabase Free and Vercel Hobby
 
-1. Create a Supabase Free project with the Data API enabled. Apply [the classroom migration](supabase/migrations/20261124000100_classroom.sql) in the SQL Editor or use `supabase db push` in a linked checkout. The migration starts the shared schedule on its application date in Korea time.
+1. Create a Supabase Free project with the Data API enabled. Apply [the classroom migration](supabase/migrations/20261124000100_classroom.sql) in the SQL Editor or use `supabase db push --remote` with Supabase CLI v3 in a linked checkout. The migration starts the shared schedule on its application date in Korea time.
 2. In Supabase Authentication, turn off public sign-ups and create the teacher account with an email and a password. Mark the email as confirmed when creating the user. In the SQL Editor, register the account as the classroom teacher, replacing the sample address with that account's email:
 
    ```sql

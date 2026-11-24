@@ -1,7 +1,8 @@
 import { createHash, randomBytes } from "node:crypto";
-import vocabulary from "../site/data/vocabulary.json" with { type: "json" };
+import { readFileSync } from "node:fs";
 import { dateKey, makeAttempt, makeCatalog } from "../site/js/quiz.mjs";
 
+const vocabulary = JSON.parse(readFileSync(new URL("../site/data/vocabulary.json", import.meta.url), "utf8"));
 const catalog = makeCatalog(vocabulary);
 const cookieName = "vocab_class_session";
 const sessionSeconds = 7 * 24 * 60 * 60;
